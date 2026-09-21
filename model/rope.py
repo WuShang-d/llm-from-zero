@@ -1,0 +1,57 @@
+import torch
+
+def get_rotate_frequency(
+    D: int,
+    base: float = 10000.0,
+    device=None,
+):
+    frequency = torch.zeros(D // 2, device=device)
+
+    for i in range(D // 2):
+        frequency[i] = pow(base, -2 * i / D)
+
+    return frequency
+
+
+def apply_rope(q: torch.Tensor, k: torch.Tensor):
+    """
+    q shape: [B, H, T, D]
+    k shape: [B, H, T, D]
+
+    return:
+        q_rotated shape: [B, H, T, D]
+        k_rotated shape: [B, H, T, D]
+    """
+    assert q.shape == k.shape
+    assert q.ndim == 4
+
+    _, _, T, D = q.shape
+    assert D % 2 == 0
+
+    position = torch.arange(T, device=q.device)
+    frequency = get_rotate_frequency(D, device=q.device)
+
+    angle = position[:, None] * frequency[None, :]
+
+    cos_angle = torch.cos(angle).to(dtype=q.dtype)
+    sin_angle = torch.sin(angle).to(dtype=q.dtype)
+
+    def rotate(x: torch.Tensor):
+        x_even = x[..., 0::2]
+        x_odd = x[..., 1::2]
+
+        rotated_even = (
+            x_even * cos_angle
+            - x_odd * sin_angle
+        )
+        rotated_odd = (
+            x_odd * cos_angle
+            + x_even * sin_angle
+        )
+
+        return torch.stack(
+            [rotated_even, rotated_odd],
+            dim=-1,
+        ).flatten(-2)
+
+    return rotate(q), rotate(k)

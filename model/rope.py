@@ -32,6 +32,8 @@ def apply_rope(q: torch.Tensor, k: torch.Tensor):
     frequency = get_rotate_frequency(D, device=q.device)
 
     angle = position[:, None] * frequency[None, :]
+    
+    #print(angle)
 
     cos_angle = torch.cos(angle).to(dtype=q.dtype)
     sin_angle = torch.sin(angle).to(dtype=q.dtype)
@@ -55,3 +57,28 @@ def apply_rope(q: torch.Tensor, k: torch.Tensor):
         ).flatten(-2)
 
     return rotate(q), rotate(k)
+
+# q = torch.tensor(
+#     [[[
+#         [1.0, 2.0, 3.0, 4.0],  # 位置 m=0
+#         [1.0, 0.0, 1.0, 0.0],  # 位置 m=1
+#         [0.0, 1.0, 0.0, 1.0],  # 位置 m=2
+#     ]]]
+# )
+
+# k = torch.tensor(
+#     [[[
+#         [2.0, 1.0, 4.0, 3.0],  # 位置 m=0
+#         [0.0, 1.0, 0.0, 1.0],  # 位置 m=1
+#         [1.0, 0.0, 1.0, 0.0],  # 位置 m=2
+#     ]]]
+# )
+
+# q_rotated, k_rotated = apply_rope(q, k)
+
+# print("q shape:", q.shape)
+# print("q rotated:")
+# print(q_rotated)
+
+# print("\nk rotated:")
+# print(k_rotated)

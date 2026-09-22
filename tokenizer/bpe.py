@@ -104,13 +104,13 @@ def calculate_pairs(tokens: list[int]) -> dict[Pair, int]:
         pair_dict[token_tuple] += 1
     return pair_dict
 
-def update_tokens(old_tokens: list[int], frequent_pair: Pair, newid: int) -> list[int]:
+def update_tokens(old_tokens: list[int], frequent_pair: Pair, new_id: int) -> list[int]:
     new_tokens = list()
     
     i = 0
     while i < len(old_tokens):
         if i + 1 < len(old_tokens) and (old_tokens[i], old_tokens[i+1]) == frequent_pair:
-            new_tokens.append(newid)
+            new_tokens.append(new_id)
             i += 2
         else:
             new_tokens.append(old_tokens[i])
@@ -178,7 +178,7 @@ def train_bpe(corpus: str, vocab_size: int = 1000,
         touched.add(pair)
 
     merges: list[Merge] = list()
-    for newid in range(256, 256 + num_merges):
+    for new_id in range(256, 256 + num_merges):
         pair = None
         while heap:
             neg_cnt, cand = heapq.heappop(heap)
@@ -196,7 +196,7 @@ def train_bpe(corpus: str, vocab_size: int = 1000,
         if pair is None:
             break
 
-        merges.append((pair, newid))
+        merges.append((pair, new_id))
         a, b = pair
 
         for i in sorted(where[pair]):
@@ -212,16 +212,16 @@ def train_bpe(corpus: str, vocab_size: int = 1000,
             if nn != -1:
                 dec((b, tokens[nn]), j)
 
-            tokens[i] = newid
+            tokens[i] = new_id
             tokens[j] = -1
             nxt[i] = nn
             if nn != -1:
                 prev[nn] = i
 
             if p != -1:
-                inc((tokens[p], newid), p)
+                inc((tokens[p], new_id), p)
             if nn != -1:
-                inc((newid, tokens[nn]), i)
+                inc((new_id, tokens[nn]), i)
 
         del where[pair]
         del counts[pair]
@@ -238,16 +238,16 @@ def train_bpe(corpus: str, vocab_size: int = 1000,
 
 def save_merges(merges: list[Merge], path: Path = MERGES_PATH) -> None:
     with open(path, "w", encoding="utf-8") as file:
-        for (token_a, token_b), newid in merges:
-            file.write(f"{token_a} {token_b} {newid}\n")
+        for (token_a, token_b), new_id in merges:
+            file.write(f"{token_a} {token_b} {new_id}\n")
 
 def get_merges(path: Path = MERGES_PATH) -> list[Merge]:
     merges = []
 
     with open(path, "r", encoding="utf-8") as file:
         for line in file:
-            token_a, token_b, newid = map(int, line.split())
-            merges.append(((token_a, token_b), newid))
+            token_a, token_b, new_id = map(int, line.split())
+            merges.append(((token_a, token_b), new_id))
 
     assert merges
     return merges
@@ -262,8 +262,8 @@ def assign_special_ids(merges: list[Merge], special_tokens: list[str]) -> Specia
 def build_vocab(merges: list[Merge], special_ids: SpecialIds | None = None) -> Vocab:
     """token id -> 原始 bytes。特殊 token 存它自己的 UTF-8 bytes，decode 时原样还原。"""
     vocab: Vocab = {i: bytes([i]) for i in range(256)}
-    for (token_a, token_b), newid in merges:
-        vocab[newid] = vocab[token_a] + vocab[token_b]
+    for (token_a, token_b), new_id in merges:
+        vocab[new_id] = vocab[token_a] + vocab[token_b]
     for token, token_id in (special_ids or {}).items():
         assert token_id not in vocab, f"特殊 token id 冲突: {token_id}"
         vocab[token_id] = token.encode("utf-8")
@@ -284,7 +284,7 @@ def load_vocab(path: Path = VOCAB_PATH) -> tuple[Vocab, SpecialIds]:
     return vocab, data["special_tokens"]
 
 def merge_piece(tokens: list[int], ranks: dict[Pair, int]) -> list[int]:
-    # newid 越小，merge 学得越早；每轮只找当前序列里 rank 最小的相邻 pair 并合并
+    # new_id 越小，merge 学得越早；每轮只找当前序列里 rank 最小的相邻 pair 并合并
     inf = float("inf")
     while len(tokens) >= 2:
         best = min(zip(tokens, tokens[1:]), key=lambda pair: ranks.get(pair, inf))
@@ -299,7 +299,7 @@ def bpe_encode(text: str, merges: list[Merge], special_ids: SpecialIds | None = 
     不传则所有文本（包括 "<|eos|>" 字面量）都按普通文本编码。
     """
     special_ids = special_ids or {}
-    ranks = {pair: newid for pair, newid in merges}
+    ranks = {pair: new_id for pair, new_id in merges}
     cache: dict[str, list[int]] = {}
     tokens: list[int] = []
 

@@ -1,14 +1,14 @@
 import torch
 
 def get_rotate_frequency(
-    D: int,
+    dim: int,
     base: float = 10000.0,
     device=None,
 ):
-    frequency = torch.zeros(D // 2, device=device)
+    frequency = torch.zeros(dim // 2, device=device)
 
-    for i in range(D // 2):
-        frequency[i] = pow(base, -2 * i / D)
+    for i in range(dim // 2):
+        frequency[i] = pow(base, -2 * i / dim)
 
     return frequency
 
@@ -25,11 +25,11 @@ def apply_rope(q: torch.Tensor, k: torch.Tensor):
     assert q.shape == k.shape
     assert q.ndim == 4
 
-    _, _, T, D = q.shape
-    assert D % 2 == 0
+    _, _, sequence_length, head_dim = q.shape
+    assert head_dim % 2 == 0
 
-    position = torch.arange(T, device=q.device)
-    frequency = get_rotate_frequency(D, device=q.device)
+    position = torch.arange(sequence_length, device=q.device)
+    frequency = get_rotate_frequency(head_dim, device=q.device)
 
     angle = position[:, None] * frequency[None, :]
     

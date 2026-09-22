@@ -99,8 +99,8 @@ class TestPretokenization(BPETestCase):
             out = []
             for piece in bpe.PRETOKEN_PATTERN.findall(text):
                 tokens = bpe.byte_encode(piece)
-                for pair, newid in self.merges:
-                    tokens = bpe.update_tokens(tokens, pair, newid)
+                for pair, new_id in self.merges:
+                    tokens = bpe.update_tokens(tokens, pair, new_id)
                 out += tokens
             return out
 
@@ -115,8 +115,8 @@ class TestVocab(BPETestCase):
         self.assertEqual(sorted(self.vocab), list(range(VOCAB_SIZE)))
 
     def test_merge_bytes_are_concatenation(self):
-        for (a, b), newid in self.merges:
-            self.assertEqual(self.vocab[newid], self.vocab[a] + self.vocab[b])
+        for (a, b), new_id in self.merges:
+            self.assertEqual(self.vocab[new_id], self.vocab[a] + self.vocab[b])
 
     def test_save_and_load(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -186,9 +186,9 @@ class TestSpecialTokens(BPETestCase):
         corpus = "hello world <|eos|> " * 200
         merges = bpe.train_bpe(corpus, 300, ["<|eos|>"])
         vocab = bpe.build_vocab(merges, bpe.assign_special_ids(merges, ["<|eos|>"]))
-        for _, newid in merges:
-            self.assertNotIn(b"<", vocab[newid])
-            self.assertNotIn(b"|", vocab[newid])
+        for _, new_id in merges:
+            self.assertNotIn(b"<", vocab[new_id])
+            self.assertNotIn(b"|", vocab[new_id])
 
     def test_invalid_special_definitions(self):
         with self.assertRaises(ValueError):

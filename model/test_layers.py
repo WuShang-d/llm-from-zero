@@ -13,9 +13,9 @@ import unittest
 
 import torch
 
-from embedding import TokenEmbedding
-from layers import Linear
-from rmsnorm import RMSNorm
+from model.embedding import TokenEmbedding
+from model.layers import Linear
+from model.rmsnorm import RMSNorm
 
 
 class TestTokenEmbedding(unittest.TestCase):
@@ -122,20 +122,22 @@ class TestLinear(unittest.TestCase):
 class TestRMSNorm(unittest.TestCase):
     def setUp(self):
         self.d_model = 4
-        self.g = torch.ones(self.d_model, requires_grad=True)
+        self.norm = RMSNorm(self.d_model)
 
     def test_output_shape(self):
         x = torch.randn(2, 3, self.d_model)
 
-        output = RMSNorm(x, self.g)
+        output = self.norm(x)
 
         self.assertEqual(output.shape, x.shape)
 
     def test_forward_matches_reference_formula(self):
         x = torch.tensor([[[1.0, 2.0, 3.0, 4.0]]])
         g = torch.tensor([1.0, 2.0, 3.0, 4.0])
+        with torch.no_grad():
+            self.norm.weight.copy_(g)
 
-        output = RMSNorm(x, g)
+        output = self.norm(x)
 
         rms = torch.sqrt(torch.tensor((1.0 + 4.0 + 9.0 + 16.0) / 4.0 + 1e-6))
         expected = (x / rms) * g
@@ -149,7 +151,7 @@ class TestRMSNorm(unittest.TestCase):
             ]
         )
 
-        output = RMSNorm(x, self.g)
+        output = self.norm(x)
         output_rms = torch.sqrt(torch.mean(output**2, dim=-1))
 
         torch.testing.assert_close(
@@ -162,7 +164,7 @@ class TestRMSNorm(unittest.TestCase):
     def test_zero_input_is_finite(self):
         x = torch.zeros(2, 3, self.d_model)
 
-        output = RMSNorm(x, self.g)
+        output = self.norm(x)
 
         self.assertTrue(torch.isfinite(output).all().item())
         torch.testing.assert_close(output, torch.zeros_like(output))
@@ -171,17 +173,17 @@ class TestRMSNorm(unittest.TestCase):
         x = torch.randn(2, 3, self.d_model)
         original = x.clone()
 
-        RMSNorm(x, self.g)
+        self.norm(x)
 
         torch.testing.assert_close(x, original)
 
     def test_gradients_reach_input_and_scale(self):
         x = torch.randn(2, 3, self.d_model, requires_grad=True)
 
-        RMSNorm(x, self.g).sum().backward()
+        self.norm(x).sum().backward()
 
         self.assertIsNotNone(x.grad)
-        self.assertIsNotNone(self.g.grad)
+        self.assertIsNotNone(self.norm.weight.grad)
 
 
 if __name__ == "__main__":

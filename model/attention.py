@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from .rope import apply_rope
 
 class Attention(nn.Module):
@@ -45,27 +46,9 @@ class Attention(nn.Module):
         # shape: [B, H, T, Dh]
 
         query, key = apply_rope(query, key)
-        scores = query @ key.transpose(-2, -1)  # [B, H, T, T]
-        scores = scores / (self.head_dim ** 0.5)
-        
-        causal_mask = torch.triu(
-            torch.full(
-                (sequence_length, sequence_length),
-                float("-inf"),
-                device=scores.device,
-                dtype=scores.dtype,
-            ),
-            diagonal=1,
-        )
-        scores = scores + causal_mask
-        
-        row_max = scores.max(dim=-1, keepdim=True).values
-        shifted_scores = scores - row_max
-        exp_scores = torch.exp(shifted_scores)
-        denominator = exp_scores.sum(dim=-1, keepdim=True)
-        attention_weights = exp_scores / denominator
-        
-        output = attention_weights @ value  # [B, H, T, Dh]
+        output = F.scaled_dot_product_attention(
+            query, key, value, is_causal=True
+        )  # [B, H, T, Dh]
         output = output.transpose(1, 2)  # [B, T, H, Dh]
         output = output.reshape(batch_size, sequence_length, self.d_model)
         output = output @ self.output_weight  # [B, T, D]

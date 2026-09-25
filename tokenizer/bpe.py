@@ -118,8 +118,11 @@ def update_tokens(old_tokens: list[int], frequent_pair: Pair, new_id: int) -> li
             
     return new_tokens
 
-def train_bpe(corpus: str, vocab_size: int = 1000,
-              special_tokens: list[str] | None = None) -> list[Merge]:
+def train_bpe(
+    corpus: str,
+    vocab_size: int = 1000,
+    special_tokens: list[str] | None = None,
+) -> list[Merge]:
     """
     vocab_size 是最终词表总大小，包含特殊 token：
     merge 条数 = vocab_size - 256 - len(special_tokens)。
@@ -141,7 +144,7 @@ def train_bpe(corpus: str, vocab_size: int = 1000,
     if num_merges < 0:
         raise ValueError("vocab_size 小于 256 + 特殊 token 数量")
 
-    print("[INFO] Start Training")
+    print("[INFO] Start Training BPE")
     word_freq = Counter()
     for segment in split_special(corpus, special_tokens)[::2]:
         word_freq.update(PRETOKEN_PATTERN.findall(segment))
@@ -293,26 +296,36 @@ def merge_piece(tokens: list[int], ranks: dict[Pair, int]) -> list[int]:
         tokens = update_tokens(tokens, best, ranks[best])
     return tokens
 
+
+class BPEEncoder:
+    """可复用的 BPE encoder，适合逐行编码大文件。"""
+
+    def __init__(self, merges: list[Merge], special_ids: SpecialIds | None = None):
+        self.special_ids = special_ids or {}
+        self.ranks = {pair: new_id for pair, new_id in merges}
+        self.cache: dict[str, list[int]] = {}
+
+    def encode(self, text: str) -> list[int]:
+        tokens: list[int] = []
+
+        for idx, segment in enumerate(split_special(text, self.special_ids)):
+            if idx % 2 == 1:
+                tokens.append(self.special_ids[segment])
+                continue
+            for piece in PRETOKEN_PATTERN.findall(segment):
+                if piece not in self.cache:
+                    self.cache[piece] = merge_piece(byte_encode(piece), self.ranks)
+                tokens.extend(self.cache[piece])
+
+        return tokens
+
+
 def bpe_encode(text: str, merges: list[Merge], special_ids: SpecialIds | None = None) -> list[int]:
     """
     special_ids 里的特殊 token 在文本中出现时直接映射成对应 id，不做 byte/BPE 处理。
     不传则所有文本（包括 "<|eos|>" 字面量）都按普通文本编码。
     """
-    special_ids = special_ids or {}
-    ranks = {pair: new_id for pair, new_id in merges}
-    cache: dict[str, list[int]] = {}
-    tokens: list[int] = []
-
-    for idx, segment in enumerate(split_special(text, special_ids)):
-        if idx % 2 == 1:
-            tokens.append(special_ids[segment])
-            continue
-        for piece in PRETOKEN_PATTERN.findall(segment):
-            if piece not in cache:
-                cache[piece] = merge_piece(byte_encode(piece), ranks)
-            tokens.extend(cache[piece])
-
-    return tokens
+    return BPEEncoder(merges, special_ids).encode(text)
 
 def bpe_decode(tokens: list[int], vocab: Vocab) -> str:
     # 非法 UTF-8（比如只解码了半个字符的 token 序列）用 U+FFFD 代替，不抛异常
@@ -332,7 +345,7 @@ def main():
               encoding="utf-8") as file:
         corpus = file.read()
 
-    merges = train_bpe(corpus, 1000, special_tokens)
+    merges = train_bpe(corpus, special_tokens=special_tokens)
     special_ids = assign_special_ids(merges, special_tokens)
     vocab = build_vocab(merges, special_ids)
 

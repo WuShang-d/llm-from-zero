@@ -6,6 +6,7 @@ from .embedding import TokenEmbedding
 from .layers import Linear
 from .rmsnorm import RMSNorm
 from .swiglu import SwiGLU
+from .transformer import TransformerLM
 
 __all__ = [
     "Attention",
@@ -14,4 +15,5 @@ __all__ = [
     "SwiGLU",
     "TokenEmbedding",
     "TransformerBlock",
+    "TransformerLM"
 ]

@@ -1,0 +1,15 @@
+{
+  "source": "data/fineweb_edu/train.txt",
+  "source_size_bytes": 9293774923,
+  "sample_method": "first characters of document-shuffled training split",
+  "source_sample_chars": 50000000,
+  "training_sample_chars": 49936946,
+  "sample_sha256": "174e9090ba88b1bb9e74b6743bbf8f846664ad6e885a8d29c1ba3af48dc94a5e",
+  "vocab_size": 8192,
+  "merge_count": 7933,
+  "special_ids": {
+    "<|bos|>": 8189,
+    "<|eos|>": 8190,
+    "<|pad|>": 8191
+  }
+}

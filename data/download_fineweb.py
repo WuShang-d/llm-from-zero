@@ -117,8 +117,14 @@ def main() -> None:
 
     stream = load_dataset(DATASET, CONFIG, split="train", streaming=True)
     stream = stream.shuffle(seed=args.seed, buffer_size=args.shuffle_buffer)
-    manifest = write_sample(stream, args.output_dir, args.train_tokens,
-                            args.valid_tokens, args.seed, args.min_chars)
+    rows = iter(stream)
+    try:
+        manifest = write_sample(rows, args.output_dir, args.train_tokens,
+                                args.valid_tokens, args.seed, args.min_chars)
+    finally:
+        # A bounded run stops mid-stream. Close the generator so its Parquet
+        # readers release pending network requests before Python exits.
+        rows.close()
     print(json.dumps(manifest, ensure_ascii=False, indent=2))
 
 

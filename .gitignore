@@ -22,6 +22,7 @@ data/token_cache/
 data/TinyStories-*.txt
 data/fineweb_edu/
 data/fineweb_edu_smoke/
+data/fineweb_edu_token_cache/
 
 # Local editor settings
 .vscode/

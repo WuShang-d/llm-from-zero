@@ -1,4 +1,4 @@
-"""Train the language model on the official TinyStories train/validation files."""
+"""Train the TinyStories baseline or the FineWeb-Edu 100M experiment."""
 
 import argparse
 import math
@@ -14,6 +14,7 @@ from tqdm import tqdm
 from data.dataset import MemmapLanguageModelDataset
 from data.dataloader import create_dataloader
 from model.transformer import TransformerLM
+from tokenizer.bpe import get_merges, load_vocab
 from training_utils import (
     create_cosine_scheduler,
     ensure_token_cache,
@@ -54,16 +55,22 @@ train_text_path = project_dir / "data" / "TinyStories-train.txt"
 val_text_path = project_dir / "data" / "TinyStories-valid.txt"
 token_cache_dir = project_dir / "data" / "token_cache"
 checkpoint_dir = project_dir / "checkpoints"
+fineweb_text_dir = project_dir / "data" / "fineweb_edu"
+fineweb_tokenizer_dir = project_dir / "tokenizer" / "fineweb_edu_8k"
 
 torch.manual_seed(seed)
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--batch-size", type=int, default=batch_size,
+    parser.add_argument("--profile", choices=("tinystories", "fineweb100m"),
+                        default="tinystories")
+    parser.add_argument("--batch-size", type=int,
                         help="每次前向传播的 micro-batch 大小")
-    parser.add_argument("--grad-accum-steps", type=int, default=grad_accum_steps,
+    parser.add_argument("--grad-accum-steps", type=int,
                         help="每次参数更新累积的 micro-batch 数")
+    parser.add_argument("--block-size", type=int,
+                        help="输入上下文长度；FineWeb 默认 512")
     parser.add_argument("--amp", choices=("auto", "off", "bf16", "fp16"),
                         default=amp)
     parser.add_argument("--max-steps", type=int,
@@ -72,11 +79,25 @@ def parse_args():
                         help="验证集最多运行多少个 batch，用于短程试跑")
     parser.add_argument("--no-save", action="store_true",
                         help="不写入检查点，用于短程试跑")
+    parser.add_argument("--prepare-data-only", action="store_true",
+                        help="只生成 token 缓存，不启动模型训练")
+    parser.add_argument("--save-every-steps", type=int,
+                        help="正式训练时每隔多少次更新覆盖保存 latest_model.pt")
     args = parser.parse_args()
-    for name in ("batch_size", "grad_accum_steps", "max_steps", "max_val_batches"):
+    for name in ("batch_size", "grad_accum_steps", "block_size", "max_steps",
+                 "max_val_batches", "save_every_steps"):
         value = getattr(args, name)
         if value is not None and value < 1:
             parser.error(f"--{name.replace('_', '-')} 必须大于 0")
+    if args.profile == "fineweb100m":
+        args.batch_size = args.batch_size or 4
+        args.grad_accum_steps = args.grad_accum_steps or 8
+        args.block_size = args.block_size or 512
+        args.save_every_steps = args.save_every_steps or 1000
+    else:
+        args.batch_size = args.batch_size or batch_size
+        args.grad_accum_steps = args.grad_accum_steps or grad_accum_steps
+        args.block_size = args.block_size or block_size
     if device != "cuda" and args.amp in ("bf16", "fp16"):
         parser.error("当前 AMP 仅支持 CUDA；在 CPU/MPS 上请使用 --amp off/auto")
     # 短程试跑的验证结果不可与完整 epoch 比较，也不能覆盖正式检查点。
@@ -103,6 +124,39 @@ def synchronize_device():
 
 def main():
     args = parse_args()
+    if args.profile == "fineweb100m" and not args.prepare_data_only and device != "cuda":
+        raise SystemExit(
+            "FineWeb 100M training requires CUDA; the current PyTorch build cannot use this GPU"
+        )
+    if args.profile == "fineweb100m":
+        selected_train_path = fineweb_text_dir / "train.txt"
+        selected_val_path = fineweb_text_dir / "valid.txt"
+        selected_cache_dir = project_dir / "data" / "fineweb_edu_token_cache"
+        selected_checkpoint_dir = checkpoint_dir / "fineweb_100m"
+        selected_d_model, selected_heads, selected_layers = 768, 12, 12
+        if not (fineweb_tokenizer_dir / "merges.txt").is_file():
+            raise SystemExit(
+                "FineWeb BPE is missing; run: python -m tokenizer.train_fineweb_bpe"
+            )
+        merges = get_merges(fineweb_tokenizer_dir / "merges.txt")
+        vocab, special_ids = load_vocab(fineweb_tokenizer_dir / "vocab.json")
+        if len(vocab) != 8192 or max(special_ids.values()) != 8191:
+            raise ValueError("FineWeb tokenizer must have the configured 8192-token vocabulary")
+    else:
+        selected_train_path = train_text_path
+        selected_val_path = val_text_path
+        selected_cache_dir = token_cache_dir
+        selected_checkpoint_dir = checkpoint_dir
+        selected_d_model, selected_heads, selected_layers = d_model, num_heads, num_layers
+        special_tokens = ["<|bos|>", "<|eos|>", "<|pad|>"]
+        merges, special_ids, vocab = prepare_tokenizer(
+            train_path=train_text_path,
+            special_tokens=special_tokens,
+            vocab_size=tokenizer_vocab_size,
+            train_new=train_bpe_tokenizer,
+            sample_chars=tokenizer_sample_chars,
+        )
+
     amp_dtype = get_amp_dtype(args.amp)
     # torch.amp.GradScaler 在较新的 PyTorch 才提供；兼容 requirements 的 2.0 下限。
     try:
@@ -115,37 +169,31 @@ def main():
         f"Effective batch: {args.batch_size * args.grad_accum_steps} | "
         f"AMP: {str(amp_dtype).replace('torch.', '') if amp_dtype else 'off'}"
     )
-    special_tokens = ["<|bos|>", "<|eos|>", "<|pad|>"]
-
-    merges, special_ids, vocab = prepare_tokenizer(
-        train_path=train_text_path,
-        special_tokens=special_tokens,
-        vocab_size=tokenizer_vocab_size,
-        train_new=train_bpe_tokenizer,
-        sample_chars=tokenizer_sample_chars,
-    )
     vocab_size = len(vocab)
 
     train_token_count = ensure_token_cache(
-        train_text_path,
-        token_cache_dir / "train.bin",
+        selected_train_path,
+        selected_cache_dir / "train.bin",
         merges,
         special_ids,
     )
     val_token_count = ensure_token_cache(
-        val_text_path,
-        token_cache_dir / "valid.bin",
+        selected_val_path,
+        selected_cache_dir / "valid.bin",
         merges,
         special_ids,
     )
+    if args.prepare_data_only:
+        print(f"Token cache ready: train={train_token_count:,}, valid={val_token_count:,}")
+        return
 
     train_dataset = MemmapLanguageModelDataset(
-        token_cache_dir / "train.bin",
-        block_size,
+        selected_cache_dir / "train.bin",
+        args.block_size,
     )
     val_dataset = MemmapLanguageModelDataset(
-        token_cache_dir / "valid.bin",
-        block_size,
+        selected_cache_dir / "valid.bin",
+        args.block_size,
     )
     train_loader = create_dataloader(
         train_dataset,
@@ -162,10 +210,10 @@ def main():
 
     model_config = {
         "vocab_size": vocab_size,
-        "num_heads": num_heads,
-        "d_model": d_model,
-        "num_layers": num_layers,
-        "block_size": block_size,
+        "num_heads": selected_heads,
+        "d_model": selected_d_model,
+        "num_layers": selected_layers,
+        "block_size": args.block_size,
     }
     tokenizer_config = {
         "merges": merges,
@@ -173,9 +221,9 @@ def main():
     }
     model = TransformerLM(
         vocab_size=vocab_size,
-        num_heads=num_heads,
-        d_model=d_model,
-        num_layers=num_layers,
+        num_heads=selected_heads,
+        d_model=selected_d_model,
+        num_layers=selected_layers,
     ).to(device)
 
     optim = AdamW(
@@ -194,7 +242,7 @@ def main():
         min_lr_ratio=min_lr_ratio,
     )
     if not args.no_save:
-        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        selected_checkpoint_dir.mkdir(parents=True, exist_ok=True)
     best_val_loss = float("inf")
     parameter_count = sum(parameter.numel() for parameter in model.parameters())
 
@@ -257,6 +305,14 @@ def main():
                     scheduler.step()
                     optimizer_steps += 1
                     total_optimizer_steps += 1
+                    if (not args.no_save and args.save_every_steps is not None
+                            and total_optimizer_steps % args.save_every_steps == 0):
+                        save_checkpoint(
+                            selected_checkpoint_dir / "latest_model.pt",
+                            model, optim, scheduler, epoch, best_val_loss,
+                            model_config, tokenizer_config,
+                        )
+                        tqdm.write(f"Saved step {total_optimizer_steps:,} checkpoint")
                 optim.zero_grad(set_to_none=True)
 
             with torch.no_grad():
@@ -305,14 +361,14 @@ def main():
             best_val_loss = val_loss
             if not args.no_save:
                 save_checkpoint(
-                    checkpoint_dir / "best_model.pt",
+                    selected_checkpoint_dir / "best_model.pt",
                     model, optim, scheduler, completed_epoch,
                     best_val_loss, model_config, tokenizer_config,
                 )
                 tqdm.write(f"Saved new best model (val loss: {best_val_loss:.4f})")
 
         if not args.no_save and completed_epoch % checkpoint_every == 0:
-            checkpoint_path = checkpoint_dir / f"checkpoint_epoch_{completed_epoch:04d}.pt"
+            checkpoint_path = selected_checkpoint_dir / f"checkpoint_epoch_{completed_epoch:04d}.pt"
             save_checkpoint(
                 checkpoint_path,
                 model,

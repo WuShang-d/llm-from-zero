@@ -34,7 +34,37 @@ python data/download_fineweb.py
 
 脚本以流式方式读取 `HuggingFaceTB/smollm-corpus` 的 `fineweb-edu-dedup` 子集，按文档 ID 稳定划分训练/验证，保存为 `train.txt`、`valid.txt` 和 `manifest.json`。预算采用数据集元数据中的 **GPT-2 token 数**；训练新的分词器后，必须重新统计实际 token 数。输出文件被 Git 忽略。已有输出或中断留下的 `.part` 文件不会被自动覆盖。
 
-当前 `train.py` 仍固定读取 TinyStories，并使用旧的 8192 词表；新语料的下载完成不等于已切换训练流程。下一步应针对新语料重新训练或确认分词器，并让预训练和 SFT 使用同一词表。
+`train.py` 默认仍读取 TinyStories 和旧词表；只有显式选择 `fineweb100m` 配置才会读取新语料。新语料下载完成后，还需训练新词表并生成 token 缓存；后续 SFT 必须使用同一词表。
+
+### 使用 FineWeb-Edu 训练约 100M 模型
+
+`fineweb100m` 配置使用 `data/fineweb_edu/{train,valid}.txt`、独立的 8192 词 BPE、`768 / 12 / 12` 模型和 512 token 上下文。先只用训练集前 5000 万字符训练词表（下载时已按文档打乱）：
+
+```bash
+python -m tokenizer.train_fineweb_bpe
+```
+
+新词表保存在 `tokenizer/fineweb_edu_8k/`，不会覆盖 TinyStories 的根目录词表。新旧词表的 token ID 映射不同，不能拿 17M 检查点直接继续训练。随后生成独立的 token 缓存；这一步会读取完整语料，可能耗时较长：
+
+```bash
+python train.py --profile fineweb100m --prepare-data-only
+```
+
+在有兼容 CUDA 的 PyTorch 环境中，先分别测 1、10、100 次参数更新（短程试跑不保存权重）：
+
+```bash
+python train.py --profile fineweb100m --max-steps 1 --max-val-batches 1
+python train.py --profile fineweb100m --max-steps 10 --max-val-batches 1
+python train.py --profile fineweb100m --max-steps 100 --max-val-batches 1
+```
+
+确认显存、吞吐与损失正常后，正式训练一轮：
+
+```bash
+python train.py --profile fineweb100m
+```
+
+默认 micro-batch 为 4、梯度累积为 8；可用 `--batch-size`、`--grad-accum-steps` 和 `--block-size` 调整。训练中每 1000 次参数更新覆盖保存 `checkpoints/fineweb_100m/latest_model.pt`，整轮验证后保存 `best_model.pt`。当前脚本不支持从 `latest_model.pt` 自动恢复优化器进度；长时间训练前应先完成短程测速并据此估算总时间。
 
 仓库已包含 `merges.txt` 和 `vocab.json`，默认直接使用现有的 8192 词表。首次运行会按需生成 `data/token_cache/` 中的 token 文件；如果数据文件或分词规则发生变化，缓存会重建。若要从训练文本重新训练 BPE，可把 `train.py` 中的 `train_bpe_tokenizer` 改为 `True`。
 

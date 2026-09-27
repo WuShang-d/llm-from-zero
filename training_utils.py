@@ -188,6 +188,10 @@ def ensure_token_cache(
                 token_ids = [eos_id]
             else:
                 token_ids = encoder.encode(line)
+                # Web corpora contain many one-off strings. Bound the per-piece
+                # memoization cache during multi-billion-token preprocessing.
+                if len(encoder.cache) > 100_000:
+                    encoder.cache.clear()
 
             np.asarray(token_ids, dtype=np.uint16).tofile(target)
             token_count += len(token_ids)

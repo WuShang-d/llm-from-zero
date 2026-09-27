@@ -1,6 +1,7 @@
 import hashlib
 import json
 import math
+from contextlib import nullcontext
 from pathlib import Path
 
 import numpy as np
@@ -44,22 +45,29 @@ def create_cosine_scheduler(
 
 
 @torch.no_grad()
-def evaluate(model, loader, device):
+def evaluate(model, loader, device, amp_dtype=None, max_batches=None):
     model.eval()
     total_loss = 0.0
     total_correct = 0
     total_tokens = 0
 
     progress = tqdm(loader, desc="Validating", unit="batch", leave=False)
-    for x, y in progress:
+    for batch_index, (x, y) in enumerate(progress):
+        if max_batches is not None and batch_index >= max_batches:
+            break
         x, y = x.to(device), y.to(device)
 
-        logits = model(x)
-        vocab_size = logits.size(-1)
-        loss = F.cross_entropy(
-            logits.reshape(-1, vocab_size),
-            y.reshape(-1),
+        context = (
+            torch.autocast(device_type="cuda", dtype=amp_dtype)
+            if amp_dtype is not None else nullcontext()
         )
+        with context:
+            logits = model(x)
+            vocab_size = logits.size(-1)
+            loss = F.cross_entropy(
+                logits.reshape(-1, vocab_size),
+                y.reshape(-1),
+            )
 
         token_count = y.numel()
         total_loss += loss.item() * token_count

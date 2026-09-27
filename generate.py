@@ -89,7 +89,7 @@ def generate(
     return bpe_decode(output_ids, vocab)
 
 def main():
-    torch.manual_seed(seed)
+    # torch.manual_seed(seed)
 
     prompt = input("[PROMPT] User: ")
     while not prompt:
@@ -120,7 +120,7 @@ def main():
     text = generate(
         model=model,
         prompt=prompt,
-        max_tokens=100,
+        max_tokens=220,
         vocab=vocab,
         merges=merges,
         special_ids=special_ids,

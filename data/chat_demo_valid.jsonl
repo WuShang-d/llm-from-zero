@@ -1,0 +1,4 @@
+{"messages":[{"role":"user","content":"Say hello to a friend."},{"role":"assistant","content":"Hello, my friend! It is good to see you."}]}
+{"messages":[{"role":"user","content":"What is three plus two?"},{"role":"assistant","content":"Three plus two is five."}]}
+{"messages":[{"role":"user","content":"Give me one idea for a rainy day."},{"role":"assistant","content":"You could read a book indoors."}]}
+{"messages":[{"role":"user","content":"I want to draw."},{"role":"assistant","content":"That sounds fun. What would you like to draw?"},{"role":"user","content":"A tree."},{"role":"assistant","content":"Start with the trunk, then add branches and leaves."}]}

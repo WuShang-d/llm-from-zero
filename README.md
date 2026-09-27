@@ -18,6 +18,24 @@ pip install -r requirements.txt
 
 将 TinyStories 的训练集、验证集文本放到 `data/`，文件名分别为 `TinyStories-train.txt` 和 `TinyStories-valid.txt`。数据文件、编码缓存和模型检查点不会提交到仓库。
 
+### 约 100M 实验：流式抽取 FineWeb-Edu
+
+下载脚本放在 `data/download_fineweb.py`，默认输出保存在 `data/fineweb_edu/`，不会下载完整的约 550 GB 数据集。先运行 `pip install -r requirements.txt` 安装新增的 `datasets` 依赖，再从项目根目录试取一小份：
+
+```bash
+python data/download_fineweb.py --train-tokens 5000000 --valid-tokens 50000 --output-dir data/fineweb_edu_smoke
+```
+
+上面是小规模试取。确认网络、磁盘空间和样本内容后，正式抽取约 20 亿训练 token：
+
+```bash
+python data/download_fineweb.py
+```
+
+脚本以流式方式读取 `HuggingFaceTB/smollm-corpus` 的 `fineweb-edu-dedup` 子集，按文档 ID 稳定划分训练/验证，保存为 `train.txt`、`valid.txt` 和 `manifest.json`。预算采用数据集元数据中的 **GPT-2 token 数**；训练新的分词器后，必须重新统计实际 token 数。输出文件被 Git 忽略。已有输出或中断留下的 `.part` 文件不会被自动覆盖。
+
+当前 `train.py` 仍固定读取 TinyStories，并使用旧的 8192 词表；新语料的下载完成不等于已切换训练流程。下一步应针对新语料重新训练或确认分词器，并让预训练和 SFT 使用同一词表。
+
 仓库已包含 `merges.txt` 和 `vocab.json`，默认直接使用现有的 8192 词表。首次运行会按需生成 `data/token_cache/` 中的 token 文件；如果数据文件或分词规则发生变化，缓存会重建。若要从训练文本重新训练 BPE，可把 `train.py` 中的 `train_bpe_tokenizer` 改为 `True`。
 
 在项目根目录运行：

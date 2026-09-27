@@ -20,6 +20,8 @@ htmlcov/
 checkpoints/
 data/token_cache/
 data/TinyStories-*.txt
+data/fineweb_edu/
+data/fineweb_edu_smoke/
 
 # Local editor settings
 .vscode/

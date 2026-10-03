@@ -113,13 +113,13 @@ python train.py --batch-size 1 --grad-accum-steps 2 --max-steps 2 --max-val-batc
 
 ## 文本生成
 
-训练完成后，在项目根目录运行：
+FineWeb 100M 基础模型训练完成后，在项目根目录运行：
 
 ```powershell
-python generate.py
+python generate.py --prompt "The history of computing begins"
 ```
 
-输入英文提示词，脚本会读取 `checkpoints/best_model.pt` 及其中的分词器配置并生成续文。采样参数和最大生成 token 数可在 `generate.py` 中调整。
+默认读取 `checkpoints/fineweb_100m/best_model.pt`，并从检查点加载对应的 8192 词 BPE 和 512 token 上下文配置。省略 `--prompt` 可进入连续输入的交互模式，输入 `/exit` 退出。可通过 `--max-new-tokens`、`--temperature`、`--top-k` 和 `--seed` 调整生成；例如 `--temperature 0` 使用确定性的贪心解码。该模型只有预训练，适合英文续写，尚不具备稳定的对话指令跟随能力。旧 TinyStories 模型仍可用 `python generate.py --profile tinystories` 加载。
 
 ## 测试
 

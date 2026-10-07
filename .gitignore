@@ -23,6 +23,17 @@ data/TinyStories-*.txt
 data/fineweb_edu/
 data/fineweb_edu_smoke/
 data/fineweb_edu_token_cache/
+qwen_sft/models/
+qwen_sft/outputs/
+qwen_sft/final_outputs/
+qwen_sft/data/train.jsonl
+qwen_sft/data/valid.jsonl
+qwen_sft/data/test.jsonl
+qwen_sft/data/legacy_ai_qa/provenance.jsonl
+qwen_sft/data/legacy_ai_qa/raw/
+qwen_sft/data/legacy_ai_qa/train.jsonl
+qwen_sft/data/legacy_ai_qa/valid.jsonl
+qwen_sft/data/legacy_ai_qa/test.jsonl
 
 # Local editor settings
 .vscode/

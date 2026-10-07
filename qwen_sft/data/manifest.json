@@ -1,0 +1,41 @@
+{
+  "inputs": [
+    {
+      "path": "qwen_sft/data/legacy_ai_qa/provenance.jsonl",
+      "sha256": "bae1e770f69de5d45434ed1ef3689321a3d76a653c7fb8d306f981c3abb27aa6",
+      "splits": {
+        "train": 528,
+        "valid": 66,
+        "test": 66
+      }
+    },
+    {
+      "path": "qwen_sft/data/daily_chat.jsonl",
+      "sha256": "8100dd812b89202850b0cd87737965ee493eafeeafb52b174b7d0ed41de0f077",
+      "splits": {
+        "train": 48,
+        "valid": 8,
+        "test": 8
+      }
+    }
+  ],
+  "model_dir": "qwen_sft/models/Qwen3-0.6B-Base",
+  "max_length": 512,
+  "length_method": "Qwen chat template, enable_thinking=False, full user+assistant turn",
+  "splits": {
+    "train": {
+      "rows": 576,
+      "sha256": "3434deee2cd7f4180ef2bf720de74958dfb2cdca0b33dc6105a1956cd0f74bc1"
+    },
+    "valid": {
+      "rows": 74,
+      "sha256": "57cc94323fe8e16e59458b3d8c5788a3443bc8a2ac5a5cee7b7e153355af3d6f"
+    },
+    "test": {
+      "rows": 74,
+      "sha256": "2489b329dd95431ddfafbf51f5a9fd30664f71e4103a5d23d42ec56317f8c08e"
+    }
+  },
+  "counts": {},
+  "review_status": "Structure and length checked; answer accuracy requires human review."
+}

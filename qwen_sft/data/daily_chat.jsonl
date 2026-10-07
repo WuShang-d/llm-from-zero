@@ -1,0 +1,64 @@
+{"split": "train", "question": "hi", "answer": "Hi! What would you like to talk about?", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "Hi, how are you?", "answer": "I’m here and ready to help. How are you?", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "hello", "answer": "Hello! What can I help you with?", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "Hey", "answer": "Hey! What’s on your mind?", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "你好", "answer": "你好！想聊点什么？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "嗨", "answer": "嗨！今天想聊什么？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "哈喽", "answer": "哈喽！有什么想聊或想问的吗？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "早上好", "answer": "早上好！祝你今天顺利。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "下午好", "answer": "下午好！有什么我可以帮你的吗？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "晚上好", "answer": "晚上好！今天过得怎么样？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "晚安", "answer": "晚安，祝你好梦。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "good morning", "answer": "Good morning! Hope your day starts well.", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "good night", "answer": "Good night! Sleep well.", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "How are you?", "answer": "I’m here and ready to help. How are you doing?", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "你怎么样？", "answer": "我在这里，随时可以陪你聊聊。你今天怎么样？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "最近怎么样", "answer": "还不错，谢谢你问！你最近有什么新鲜事？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "谢谢", "answer": "不客气！", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "太感谢了", "answer": "不用谢，很高兴帮上忙。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "thanks", "answer": "You’re welcome!", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "多谢帮忙", "answer": "不客气，能帮上忙就好。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "对不起", "answer": "没关系，我们接着聊。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "抱歉，我刚才说错了", "answer": "没关系，你可以说说想怎么更正。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "sorry", "answer": "No worries. What would you like to do next?", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "再见", "answer": "再见，祝你接下来一切顺利！", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "拜拜", "answer": "拜拜，下次聊！", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "bye", "answer": "Bye! Take care.", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "回头见", "answer": "回头见！", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "你是谁？", "answer": "我是一个 AI 助手，可以陪你聊天，也可以帮你整理和解释信息。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "你叫什么名字", "answer": "你可以叫我助手。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "你能做什么？", "answer": "我可以回答问题、解释概念、整理文字，也可以陪你聊聊。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "你会说中文吗？", "answer": "会的，我们可以用中文交流。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "Can you speak English?", "answer": "Yes, we can chat in English.", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "我可以问你一个问题吗？", "answer": "当然可以，请说。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "我想随便聊聊", "answer": "好呀。你想聊今天发生的事，还是换个轻松的话题？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "聊点轻松的吧", "answer": "好呀。最近有什么让你开心的小事吗？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "我今天有点累", "answer": "辛苦了。要不要先休息一会儿，或者说说今天发生了什么？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "今天心情不错", "answer": "真好！是什么事让你心情这么好？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "我有点无聊", "answer": "要不要玩个简单的问答游戏，或者聊聊你最近感兴趣的事？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "我刚下班", "answer": "辛苦了！今天工作还顺利吗？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "我准备去吃饭", "answer": "好呀，祝你吃得开心！", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "吃过饭了吗？", "answer": "我不需要吃饭，不过很乐意听你聊聊今天吃了什么。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "今天天气怎么样？", "answer": "我不知道你所在位置的实时天气。告诉我城市，或查看当地天气预报会更准确。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "现在几点了？", "answer": "我无法保证知道你当地的实时钟点，查看设备时钟最准确。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "你能陪我聊一会儿吗？", "answer": "可以呀。你现在想聊什么？", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "给我讲个笑话", "answer": "为什么程序员总分不清万圣节和圣诞节？因为 OCT 31 等于 DEC 25。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "夸我一句", "answer": "愿意认真提问和学习，这点很棒。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "我没听懂", "answer": "没关系。告诉我是哪一部分，我换个更简单的说法。", "source": "project_authored_daily_chat"}
+{"split": "train", "question": "能再说一遍吗？", "answer": "当然可以。你想让我重复哪一部分？", "source": "project_authored_daily_chat"}
+{"split": "valid", "question": "在吗？", "answer": "在的，你想聊什么？", "source": "project_authored_daily_chat"}
+{"split": "valid", "question": "上午好", "answer": "上午好！今天有什么安排？", "source": "project_authored_daily_chat"}
+{"split": "valid", "question": "谢谢你的解释", "answer": "不客气，很高兴解释清楚了。", "source": "project_authored_daily_chat"}
+{"split": "valid", "question": "我想找人说说话", "answer": "我在这里。你想从哪件事说起？", "source": "project_authored_daily_chat"}
+{"split": "valid", "question": "Do you speak Chinese?", "answer": "Yes, we can chat in Chinese or English.", "source": "project_authored_daily_chat"}
+{"split": "valid", "question": "我先走了", "answer": "好的，回头聊！", "source": "project_authored_daily_chat"}
+{"split": "valid", "question": "我今天挺开心", "answer": "听起来不错！愿意分享一下原因吗？", "source": "project_authored_daily_chat"}
+{"split": "valid", "question": "你能帮我吗", "answer": "可以，请告诉我你需要什么帮助。", "source": "project_authored_daily_chat"}
+{"split": "test", "question": "你好呀", "answer": "你好呀！今天想聊些什么？", "source": "project_authored_daily_chat"}
+{"split": "test", "question": "Hi there", "answer": "Hi there! How can I help you?", "source": "project_authored_daily_chat"}
+{"split": "test", "question": "早安", "answer": "早安！祝你有个愉快的一天。", "source": "project_authored_daily_chat"}
+{"split": "test", "question": "辛苦你了", "answer": "谢谢你！有什么需要继续处理的，告诉我就好。", "source": "project_authored_daily_chat"}
+{"split": "test", "question": "我今天有点烦", "answer": "听起来今天不太顺心。愿意说说发生了什么吗？", "source": "project_authored_daily_chat"}
+{"split": "test", "question": "改天再聊", "answer": "好呀，改天聊！", "source": "project_authored_daily_chat"}
+{"split": "test", "question": "可以用英文聊吗？", "answer": "可以，我们可以用英文交流。", "source": "project_authored_daily_chat"}
+{"split": "test", "question": "你是机器人吗？", "answer": "我是 AI 助手，可以通过文字和你交流。", "source": "project_authored_daily_chat"}

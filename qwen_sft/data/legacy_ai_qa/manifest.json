@@ -1,0 +1,54 @@
+{
+  "seed": 42,
+  "checkpoint": "checkpoints/fineweb_100m/best_model.pt",
+  "max_input_tokens": 512,
+  "tokenizer_merges": "tokenizer/fineweb_100m_merges.txt",
+  "tokenizer_merges_sha256": "73f6f53348d689e192884ff4daf11e681e9e6f658d78d68caa9f11d616bc3ad6",
+  "raw_sources": [
+    {
+      "name": "ai_agents_en",
+      "path": "data/ai_qa/raw/dataset_en.jsonl",
+      "sha256": "aeee0d694df3b9a45277d7eb3e2edfaddeec18f40e96ec6cb206d1132c6b8f5c",
+      "license": "MIT"
+    },
+    {
+      "name": "qa_ml_dl_jsonl",
+      "path": "data/ai_qa/raw/brief_questions_with_answers.jsonl",
+      "sha256": "f005ec9c390caf7bfea4a9bef5d9efce0660e0b1ae7818b95eeaed5fcff74e1b",
+      "license": "MIT"
+    }
+  ],
+  "counts": {
+    "ai_agents_en:rows": 132,
+    "conflicting_duplicate_questions": 108,
+    "exact_duplicate_questions_removed": 0,
+    "qa_ml_dl_jsonl:outside_scope": 23573,
+    "qa_ml_dl_jsonl:rows": 24215,
+    "qa_ml_dl_jsonl:too_short": 6
+  },
+  "splits": {
+    "train": {
+      "rows": 528,
+      "sources": {
+        "ai_agents_en": 106,
+        "qa_ml_dl_jsonl": 422
+      }
+    },
+    "valid": {
+      "rows": 66,
+      "sources": {
+        "ai_agents_en": 13,
+        "qa_ml_dl_jsonl": 53
+      }
+    },
+    "test": {
+      "rows": 66,
+      "sources": {
+        "ai_agents_en": 13,
+        "qa_ml_dl_jsonl": 53
+      }
+    }
+  },
+  "review_status": "Structural cleaning only; answers and source claims need human fact review.",
+  "split_note": "Exact normalized questions kept in one split; semantic paraphrases are not detected."
+}
